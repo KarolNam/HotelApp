@@ -1,0 +1,148 @@
+@page "/issueaninvoice"
+@using HotelApp.Database.Entities;
+@using Microsoft.EntityFrameworkCore;
+@rendermode InteractiveServer
+
+<PageTitle>Issue an invoice</PageTitle>
+
+<div class="SiteBox animatedSlideFromUp">
+	<EditForm FormName="IssueAnInvoke" Model="invoice" OnSubmit="Issue" autocomplete="off">
+		<div class="form-container">
+			<DataAnnotationsValidator />
+			<h3 style="text-align: center;">Issue an invoice</h3>
+			<br />
+			<h3>Filter guests by lastname</h3>
+			<InputText id="GuestLastName" class="form-control" @bind-Value="lastname"></InputText>
+			<br />
+			<h3 style="text-align: center;">Choose reservation</h3>
+			<InputSelect id="InvoiceId" class="form-control" @bind-Value="invoice.ReservationId">
+				@if (lastname == string.Empty)
+				{
+					<option value="">Choose reservation</option>
+					foreach (var reservation in reservationsList)
+					{
+						foreach (var guest in guestsList.Where(g => g.Id == reservation.GuestId))
+						{
+							foreach (var room in roomsList.Where(r => r.Id == reservation.RoomId))
+							{
+								<option value="@reservation.Id">
+									@reservation.Id | @guest.LastName | @guest.FirstName | @room.RoomNumber |
+									@room.Type
+								</option>
+							}
+						}
+					}
+				}
+				else
+				{
+					<option value="">Choose reservation</option>
+					foreach (var reservation in reservationsList)
+					{
+						foreach (var guest in guestsList.Where(g => g.Id == reservation.GuestId && g.LastName.ToLower().Contains(lastname.ToLower())))
+						{
+							foreach (var room in roomsList.Where(r => r.Id == reservation.RoomId))
+							{
+								<option value="@reservation.Id">
+									@reservation.Id | @guest.LastName | @guest.FirstName | @room.RoomNumber | @room.Type
+								</option>
+							}
+						}
+					}
+				}
+			</InputSelect>
+			<div style="background: white; display: inline-flex; font-size: 24px;">
+				<ValidationMessage For="(() => invoice.ReservationId)"></ValidationMessage>
+			</div>
+			<br />
+			<h3 style="text-align: center;">Choose status</h3>
+			<InputSelect id="InvoiceStatus" class="form-control" @bind-Value="invoice.Status">
+				<option value="">Choose status</option>
+				<option value="Pending">Pending</option>
+				<option value="Paid">Paid</option>
+				<option value="Cancelled">Cancelled</option>
+				<option value="Refunded">Refunded</option>
+				<option value="Processing">Processing</option>
+				<option value="Failed">Failed</option>
+			</InputSelect>
+			<div style="background: white; display: inline-flex; font-size: 24px;">
+				<ValidationMessage For="(() => invoice.Status)"></ValidationMessage>
+			</div>
+			<div class="button-box">
+				<button type="submit" class="button-form">Issue an invoice</button>
+			</div>
+		</div>
+	</EditForm>
+	<br />
+	<div>
+		@if (message == null)
+		{
+			<h3>Status: There will be status of adding process</h3>
+		}
+		else
+		{
+			<h3>Status: @message</h3>
+		}
+	</div>
+</div>
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject Database.AppDbContext dbContext
+@code
+{
+	[SupplyParameterFromForm]
+	public Invoice invoice { get; set; } = new Invoice
+		{
+			Status = string.Empty
+		};
+	[SupplyParameterFromForm]
+	private string? lastname { get; set; } = string.Empty;
+	public List<Reservation> reservationsList = new();
+	public List<Guest> guestsList = new();
+	public List<Room> roomsList = new();
+	public List<ReservationServices> reservationServicesList = new();
+	public List<Service> servicesList = new();
+	public List<Invoice> invoicesList = new();
+	private string? message;
+
+	protected override async Task OnInitializedAsync()
+	{
+		reservationsList = await Http.GetFromJsonAsync<List<Reservation>>("api/Reservation");
+		guestsList = await Http.GetFromJsonAsync<List<Guest>>("api/Guest");
+		roomsList = await Http.GetFromJsonAsync<List<Room>>("api/Room");
+		reservationServicesList = await Http.GetFromJsonAsync<List<ReservationServices>>("api/ReservationServices");
+		servicesList = await Http.GetFromJsonAsync<List<Service>>("api/Service");
+		invoicesList = await Http.GetFromJsonAsync<List<Invoice>>("api/Invoice");
+	}
+
+	private async Task Issue()
+	{
+		var reservation = dbContext.Reservations.FirstOrDefault(r => r.Id == invoice.ReservationId);
+		if (reservation != null)
+		{
+			invoice.TotalCost = reservation.TotalPrice;
+			foreach (var reservationService in reservationServicesList.Where(rs => rs.ReservationId == reservation.Id))
+			{
+				foreach (var service in servicesList.Where(s => s.Id == reservationService.ServiceId))
+				{
+					invoice.TotalCost = invoice.TotalCost + service.Price * reservationService.Quantity;
+				}
+			}
+		}
+		invoice.Date = DateTime.Now;
+		invoice.Reservation = null;
+		var response = await Http.PostAsJsonAsync("api/Invoice", invoice);
+		if (response.IsSuccessStatusCode)
+		{
+			message = $"Succeed issue an invoice! Reservation id: {invoice.ReservationId} | Date: {invoice.Date} | Total cost: {invoice.TotalCost} PLN | Status: {invoice.Status}";
+			invoice = new Invoice
+				{
+					Status = string.Empty
+				};
+		}
+		else
+		{
+			message = "Failed to issue an invoice! There is already invoice to this reservation!";
+		}
+	}
+}

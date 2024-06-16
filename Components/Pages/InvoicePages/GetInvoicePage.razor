@@ -1,0 +1,190 @@
+@page "/getinvoice"
+@using HotelApp.Database.Entities;
+@using Microsoft.EntityFrameworkCore;
+@rendermode InteractiveServer
+
+
+<PageTitle>Get invoice</PageTitle>
+<div class="bounce SiteBox">
+	@if (invoicesList.Any())
+	{
+		<EditForm FormName="PickInvoice" Model="InvoiceId" OnSubmit="Apply" autocomplete="off">
+			<div class="form-container">
+				<h3>Filter guests by lastname</h3>
+				<InputText id="GuestLastName" class="form-control" @bind-Value="lastname"></InputText>
+				<br />
+				<InputSelect id="InvoiceId" class="form-control" @bind-Value="InvoiceId">
+					@if (lastname == string.Empty)
+					{
+						<option value="0">Choose invoice id</option>
+						foreach (var invoice in invoicesList)
+						{
+							var reservation = dbContext.Reservations.FirstOrDefault(r => r.Id == invoice.ReservationId);
+							var guest = dbContext.Guests.FirstOrDefault(g => g.Id == reservation.GuestId);
+							var room = dbContext.Rooms.FirstOrDefault(r => r.Id == reservation.RoomId);
+							<option value="@invoice.Id">Invoice id: @invoice.Id | Reservation id: @reservation.Id | @guest.LastName | @guest.FirstName | Room number: @room.RoomNumber | 
+																	@room.Type | Check in: @reservation.CheckInDate | Check out: @reservation.CheckOutDate</option>
+						}
+					}
+					else
+					{
+						<option value="0">Choose invoice id</option>
+						foreach (var invoice in invoicesList)
+						{
+							var reservation = dbContext.Reservations.FirstOrDefault(r => r.Id == invoice.ReservationId);
+							foreach (var guest in guestsList.Where(g => g.Id == reservation.GuestId && g.LastName.ToLower().Contains(lastname.ToLower())))
+							{
+								var room = dbContext.Rooms.FirstOrDefault(r => r.Id == reservation.RoomId);
+								<option value="@invoice.Id">Invoice id: @invoice.Id | Reservation id: @reservation.Id | @guest.LastName | @guest.FirstName | Room number: @room.RoomNumber | 
+																		@room.Type | Check in: @reservation.CheckInDate | Check out: @reservation.CheckOutDate</option>
+							}
+						}
+					}
+				</InputSelect>
+				<div class="button-box">
+					<button type="submit" class="button-form">Choose invoice id</button>
+				</div>
+			</div>
+		</EditForm>
+		@if (invoice == null)
+		{
+			<p>Ładowanie...</p>
+		}
+		else
+		{
+			<h1>Invoice</h1>
+			<br />
+			<h2>Hotel</h2>
+			<h3>Wesoła 5a, Łódź, Poland</h3>
+			<h3>123-456-7890</h3>
+			<h3>hotel@hotel.com</h3>
+			<h3>hotel.com</h3>
+			<br />
+			<h2>Billed to</h2>
+			if (reservation != null)
+			{
+				if (guest != null)
+				{
+					<h3>@guest.LastName</h3>
+					<h3>@guest.FirstName</h3>
+					<h3>@guest.Email</h3>
+					<h3>@guest.Phone</h3>
+				}
+			}
+			<br />
+			<h3>Invoice No : @invoice.Id</h3>
+			<h3>Issue Date : @invoice.Date</h3>
+			<h3>Due Date : @invoice.Date.AddDays(7)</h3>
+			<h3>Status : @invoice.Status</h3>
+			<br />
+			<table class="table">
+				<thead>
+					<tr>
+						<th>Items description</th>
+						<th>Qty</th>
+						<th>Unit Price</th>
+						<th>Total</th>
+					</tr>
+				</thead>
+				<tbody>
+					@if (reservation != null && room != null)
+					{
+						<tr>
+							<td>Reservation id: @reservation.Id | Room id: @room.Id | Room type: @room.Type</td>
+							<td>
+								@if (reservation.CheckInDate.TimeOfDay > new TimeSpan(12, 0, 0))
+								{
+									@((reservation.CheckOutDate - reservation.CheckInDate).Days + 1)
+								}
+								else
+								{
+									@((reservation.CheckOutDate - reservation.CheckInDate).Days)
+								}
+							</td>
+							<td>@room.PricePerNight PLN</td>
+							<td>@reservation.TotalPrice PLN</td>
+						</tr>
+						foreach (var reservationService in reservationServicesList.Where(rs => rs.ReservationId == invoice.ReservationId))
+						{
+							foreach (var service in servicesList.Where(s => s.Id == reservationService.ServiceId))
+							{
+								<tr>
+									<td>@service.Name</td>
+									<td>@reservationService.Quantity</td>
+									<td>@service.Price PLN</td>
+									<td>@(service.Price * @reservationService.Quantity) PLN</td>
+								</tr>
+							}
+						}
+					}
+				</tbody>
+			</table>
+			<br />
+			<h2>Total cost : @invoice.TotalCost PLN</h2>
+			<h2>Tax/Vat(10%) : @(invoice.TotalCost * 0.1) PLN</h2>
+			<h1>Total price : @(invoice.TotalCost + invoice.TotalCost * 0.1) PLN</h1>
+			<div class="button-box">
+				<button class="button-form">Print</button> @*Kod do drukowania faktury ;)*@
+			</div>
+		}
+	}
+	else
+	{
+		<h1>There is no any invoice!!!</h1>
+	}
+</div>
+
+@inject Database.AppDbContext dbContext
+@inject HttpClient Http
+@code
+{
+	[SupplyParameterFromForm]
+	private string? lastname { get; set; } = string.Empty;
+	private Invoice? invoice = new Invoice
+		{
+			ReservationId = 0,
+			Status = string.Empty
+		};
+	private Reservation? reservation = new();
+	private Guest guest = new Guest
+		{
+			FirstName = string.Empty,
+			LastName = string.Empty,
+			Email = string.Empty,
+			Phone = string.Empty
+		};
+	private Room? room = new Room
+		{
+			RoomNumber = string.Empty,
+			Type = string.Empty,
+			PricePerNight = 0
+		};
+	[SupplyParameterFromForm]
+	private int InvoiceId { get; set; } = 0;
+	private List<Invoice> invoicesList = new();
+	private List<Service> servicesList = new();
+	private List<ReservationServices> reservationServicesList = new();
+	private List<Guest> guestsList = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		invoicesList = await Http.GetFromJsonAsync<List<Invoice>>("api/Invoice");
+		reservationServicesList = await Http.GetFromJsonAsync<List<ReservationServices>>("api/ReservationServices");
+		servicesList = await Http.GetFromJsonAsync<List<Service>>("api/Service");
+		guestsList = await Http.GetFromJsonAsync<List<Guest>>("api/Guest");
+	}
+
+	public void Apply()
+	{
+		invoice = dbContext.Invoices.FirstOrDefault(i => i.Id == InvoiceId);
+		if (invoice != null)
+		{
+			reservation = dbContext.Reservations.FirstOrDefault(r => r.Id == invoice.ReservationId);
+			if (reservation != null)
+			{
+				guest = dbContext.Guests.FirstOrDefault(g => g.Id == reservation.GuestId);
+				room = dbContext.Rooms.FirstOrDefault(r => r.Id == reservation.RoomId);
+			}
+		}
+	}
+}

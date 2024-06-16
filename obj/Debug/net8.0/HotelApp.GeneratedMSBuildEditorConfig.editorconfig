@@ -1,0 +1,147 @@
+is_global = true
+build_property.TargetFramework = net8.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = true
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property.RootNamespace = HotelApp
+build_property.RootNamespace = HotelApp
+build_property.ProjectDir = C:\Projekt\HotelApp\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.RazorLangVersion = 8.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = C:\Projekt\HotelApp
+build_property._RazorSourceGeneratorDebug = 
+
+[C:/Projekt/HotelApp/Components/App.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xBcHAucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projekt/HotelApp/Components/Pages/Error.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xFcnJvci5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projekt/HotelApp/Components/Pages/GuestPages/AddGuestPage.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xHdWVzdFBhZ2VzXEFkZEd1ZXN0UGFnZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projekt/HotelApp/Components/Pages/GuestPages/GuestDetails.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xHdWVzdFBhZ2VzXEd1ZXN0RGV0YWlscy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projekt/HotelApp/Components/Pages/GuestPages/UpdateGuestPage.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xHdWVzdFBhZ2VzXFVwZGF0ZUd1ZXN0UGFnZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projekt/HotelApp/Components/Pages/InvoicePages/InvoiceDetails.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xJbnZvaWNlUGFnZXNcSW52b2ljZURldGFpbHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projekt/HotelApp/Components/Pages/InvoicePages/IssueAnInvoice.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xJbnZvaWNlUGFnZXNcSXNzdWVBbkludm9pY2UucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projekt/HotelApp/Components/Pages/InvoicePages/UpdateInvoicePage.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xJbnZvaWNlUGFnZXNcVXBkYXRlSW52b2ljZVBhZ2UucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projekt/HotelApp/Components/Pages/ReservationPages/AddReservationPage.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xSZXNlcnZhdGlvblBhZ2VzXEFkZFJlc2VydmF0aW9uUGFnZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projekt/HotelApp/Components/Pages/ReservationPages/ReservationDetails.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xSZXNlcnZhdGlvblBhZ2VzXFJlc2VydmF0aW9uRGV0YWlscy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projekt/HotelApp/Components/Pages/ReservationPages/UpdateReservationPage.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xSZXNlcnZhdGlvblBhZ2VzXFVwZGF0ZVJlc2VydmF0aW9uUGFnZS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projekt/HotelApp/Components/Pages/ReservationServicePages/AddServiceToReservationPage.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xSZXNlcnZhdGlvblNlcnZpY2VQYWdlc1xBZGRTZXJ2aWNlVG9SZXNlcnZhdGlvblBhZ2UucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projekt/HotelApp/Components/Pages/ReservationServicePages/ReservationServicesDetails.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xSZXNlcnZhdGlvblNlcnZpY2VQYWdlc1xSZXNlcnZhdGlvblNlcnZpY2VzRGV0YWlscy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projekt/HotelApp/Components/Pages/ReservationServicePages/UpdateServiceToReservationPage.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xSZXNlcnZhdGlvblNlcnZpY2VQYWdlc1xVcGRhdGVTZXJ2aWNlVG9SZXNlcnZhdGlvblBhZ2UucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projekt/HotelApp/Components/Pages/RoomPages/AddRoomPage.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xSb29tUGFnZXNcQWRkUm9vbVBhZ2UucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projekt/HotelApp/Components/Pages/RoomPages/RoomDetails.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xSb29tUGFnZXNcUm9vbURldGFpbHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projekt/HotelApp/Components/Pages/RoomPages/UpdateRoomPage.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xSb29tUGFnZXNcVXBkYXRlUm9vbVBhZ2UucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projekt/HotelApp/Components/Pages/ServicePages/AddServicePage.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xTZXJ2aWNlUGFnZXNcQWRkU2VydmljZVBhZ2UucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projekt/HotelApp/Components/Pages/ServicePages/ServiceDetails.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xTZXJ2aWNlUGFnZXNcU2VydmljZURldGFpbHMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projekt/HotelApp/Components/Pages/ServicePages/UpdateServicePage.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xTZXJ2aWNlUGFnZXNcVXBkYXRlU2VydmljZVBhZ2UucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projekt/HotelApp/Components/Routes.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xSb3V0ZXMucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projekt/HotelApp/Components/_Imports.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xfSW1wb3J0cy5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Projekt/HotelApp/Components/Layout/MainLayout.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcTWFpbkxheW91dC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-artiydue7z
+
+[C:/Projekt/HotelApp/Components/Layout/NavMenu.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xMYXlvdXRcTmF2TWVudS5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = b-uyvrdyrz3j
+
+[C:/Projekt/HotelApp/Components/Pages/GuestPages/GuestListPage.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xHdWVzdFBhZ2VzXEd1ZXN0TGlzdFBhZ2UucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-hl8ipd0do7
+
+[C:/Projekt/HotelApp/Components/Pages/Home.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xIb21lLnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-fvwavdav10
+
+[C:/Projekt/HotelApp/Components/Pages/InvoicePages/GetInvoicePage.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xJbnZvaWNlUGFnZXNcR2V0SW52b2ljZVBhZ2UucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-15mrsvtcbg
+
+[C:/Projekt/HotelApp/Components/Pages/InvoicePages/InvoiceListPage.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xJbnZvaWNlUGFnZXNcSW52b2ljZUxpc3RQYWdlLnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-rjwhj15rc2
+
+[C:/Projekt/HotelApp/Components/Pages/ReservationPages/ReservationListPage.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xSZXNlcnZhdGlvblBhZ2VzXFJlc2VydmF0aW9uTGlzdFBhZ2UucmF6b3I=
+build_metadata.AdditionalFiles.CssScope = b-318k9orieh
+
+[C:/Projekt/HotelApp/Components/Pages/ReservationServicePages/ServiceListInReservationPage.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xSZXNlcnZhdGlvblNlcnZpY2VQYWdlc1xTZXJ2aWNlTGlzdEluUmVzZXJ2YXRpb25QYWdlLnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-iu0ugc2bkd
+
+[C:/Projekt/HotelApp/Components/Pages/RoomPages/RoomListPage.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xSb29tUGFnZXNcUm9vbUxpc3RQYWdlLnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-hl4em3bllk
+
+[C:/Projekt/HotelApp/Components/Pages/ServicePages/ServiceListPage.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xQYWdlc1xTZXJ2aWNlUGFnZXNcU2VydmljZUxpc3RQYWdlLnJhem9y
+build_metadata.AdditionalFiles.CssScope = b-rrp7s2nmn7

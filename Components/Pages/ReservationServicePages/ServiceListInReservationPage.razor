@@ -1,0 +1,137 @@
+@page "/servicelistinreservation"
+@using HotelApp.Database.Entities
+@using Microsoft.EntityFrameworkCore;
+@using System.ComponentModel.DataAnnotations.Schema;
+@rendermode InteractiveServer
+
+<PageTitle>Service in reservation list</PageTitle>
+<div class="bounce SiteBox">
+	@if (reservationServicesList.Any())
+	{
+		<EditForm FormName="Filer" Model="reservationId" autocomplete="off">
+			<div class="form-container">
+				<h3>Filter guests by lastname</h3>
+				<InputText id="GuestLastName" class="form-control" @bind-Value="lastname"></InputText>
+				<br />
+				<InputSelect id="SelectedId" class="form-control" @bind-Value="reservationId">
+					@if (lastname == string.Empty)
+					{
+						<option value="0">Reset filter</option>
+						foreach (var reservation in reservationsList.Where(r => (r.CheckOutDate - DateTime.Now).Days >= 0))
+						{
+							foreach (var guest in guestsList.Where(g => g.Id == reservation.GuestId))
+							{
+								foreach (var room in roomsList.Where(r => r.Id == reservation.RoomId))
+								{
+									<option value="@reservation.Id">@reservation.Id | @guest.LastName | @guest.FirstName | @room.RoomNumber | @room.Type</option>
+								}
+							}
+						}
+					}
+					else
+					{
+						<option value="0">Reset filter</option>
+						foreach (var reservation in reservationsList.Where(r => (r.CheckOutDate - DateTime.Now).Days >= 0))
+						{
+							foreach (var guest in guestsList.Where(g => g.Id == reservation.GuestId && g.LastName.ToLower().Contains(lastname.ToLower())))
+							{
+								foreach (var room in roomsList.Where(r => r.Id == reservation.RoomId))
+								{
+									<option value="@reservation.Id">@reservation.Id | @guest.LastName | @guest.FirstName | @room.RoomNumber | @room.Type</option>
+								}
+							}
+						}
+					}
+				</InputSelect>
+			</div>
+		</EditForm>
+		<br />
+	}
+	<div>
+		@if (reservationServicesList is null)
+		{
+			<h1 style="text-align: center;">Loading services in reservations. Please wait...</h1>
+		}
+		else if (reservationServicesList.Any())
+		{
+			<h3 style="text-align: center">Services in reservation list:</h3>
+			<table class="table">
+				<thead>
+					<tr>
+						<th>Id</th>
+						<th>Reservation id</th>
+						<th>Service id</th>
+						<th>Service Name</th>
+						<th>Service Price</th>
+						<th>Quantity</th>
+						<th>Edit</th>
+						<th>Delete</th>
+					</tr>
+				</thead>
+				<tbody>
+					@if (reservationId > 0)
+					{
+						foreach (var reservationService in reservationServicesList.Where(rs => rs.ReservationId == reservationId))
+						{
+							foreach (var service in servicesList.Where(s => s.Id == reservationService.ServiceId))
+							{
+								<tr>
+									<ReservationServicesDetails reservationService="reservationService" service="service" DeleteReservationService="Delete"></ReservationServicesDetails>
+								</tr>
+							}
+						}
+					}
+					else
+					{
+						foreach (var reservationService in reservationServicesList)
+						{
+							foreach (var service in servicesList.Where(s => s.Id == reservationService.ServiceId))
+							{
+								<tr>
+									<ReservationServicesDetails reservationService="reservationService" service="service" DeleteReservationService="Delete"></ReservationServicesDetails>
+								</tr>
+							}
+						}
+					}
+				</tbody>
+			</table>
+		}
+		else
+		{
+			<h1 style="text-align: center;">No services in reservations found</h1>
+		}
+	</div>
+</div>
+
+@inject HttpClient Http
+@inject Database.AppDbContext dbContext
+@inject NavigationManager Navigation
+@code
+{
+	[SupplyParameterFromForm]
+	private string? lastname { get; set; } = string.Empty;
+	[SupplyParameterFromForm]
+	public int reservationId { get; set; } = 0;
+	private List<ReservationServices> reservationServicesList = new();
+	public List<Reservation> reservationsList = new();
+	public List<Service> servicesList = new();
+	public List<Guest> guestsList = new();
+	public List<Room> roomsList = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		reservationServicesList = await Http.GetFromJsonAsync<List<ReservationServices>>("api/ReservationServices");
+		reservationsList = await Http.GetFromJsonAsync<List<Reservation>>("api/Reservation");
+		servicesList = await Http.GetFromJsonAsync<List<Service>>("api/Service");
+		guestsList = await Http.GetFromJsonAsync<List<Guest>>("api/Guest");
+		roomsList = await Http.GetFromJsonAsync<List<Room>>("api/Room");
+	}
+
+	public void Delete(int reservationServiceId)
+	{
+		var dbReservationService = dbContext.ReservationServices.FirstOrDefault(rs => rs.Id == reservationServiceId);
+		dbContext.ReservationServices.Remove(dbReservationService);
+		dbContext.SaveChangesAsync();
+		Navigation.NavigateTo("/servicelistinreservation", true);
+	}
+}

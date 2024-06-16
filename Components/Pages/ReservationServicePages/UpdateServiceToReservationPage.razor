@@ -1,0 +1,88 @@
+﻿@page "/updatereservationservice/{reservationServiceId}"
+@using HotelApp.Database.Entities
+@using Microsoft.EntityFrameworkCore;
+@rendermode InteractiveServer
+
+<PageTitle>Edit service in reservation</PageTitle>
+
+<div class="SiteBox animatedSlideFromUp">
+	<EditForm method="post" FormName="EditServiceToReservationForm" OnValidSubmit="SaveServiceToReservation" Model="reservationService" autocomplete="off">
+		<div class="form-container">
+			<DataAnnotationsValidator />
+			<h3 style="text-align: center;">Edit a service in reservation</h3>
+			<br />
+			<h4 style="text-align: center;">Quantity</h4>
+			<InputNumber id="Quantity" class="form-control" @bind-Value="reservationService.Quantity" />
+			<div style="background: white; display: inline-flex; font-size: 24px;">
+				<ValidationMessage For="(() => reservationService.Quantity)"></ValidationMessage>
+			</div>
+			<div class="button-box">
+				<button type="submit" class="button-form">Save service in reservation</button>
+			</div>
+			<div class="button-box">
+				<button class="button-form" @onclick="Cancel">Cancel</button>
+			</div>
+		</div>
+	</EditForm>
+</div>
+
+@inject HttpClient Http
+@inject Database.AppDbContext dbContext
+@inject NavigationManager Navigation
+@code
+{
+	[Parameter]
+	public string reservationServiceId { get; set; }
+	[SupplyParameterFromForm]
+	public ReservationServices reservationService { get; set; }
+	public List<Reservation> reservationsList = new();
+	public List<Service> servicesList = new();
+	public List<Guest> guestsList = new();
+	public List<Room> roomsList = new();
+	private string? message;
+	int actualReservationId, actualServiceId, actualQuantity;
+
+	protected override void OnInitialized()
+	{
+		base.OnInitialized();
+		var dbReservationService = dbContext.ReservationServices.FirstOrDefault(r => r.Id == int.Parse(reservationServiceId));
+		if (dbReservationService != null)
+		{
+			reservationService = new ReservationServices
+				{
+					ReservationId = dbReservationService.ReservationId,
+					ServiceId = dbReservationService.ServiceId,
+					Quantity = dbReservationService.Quantity
+				};
+			actualReservationId = dbReservationService.ReservationId;
+			actualServiceId = dbReservationService.ServiceId;
+			actualQuantity = dbReservationService.Quantity;
+		}
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		reservationsList = await Http.GetFromJsonAsync<List<Reservation>>("api/Reservation");
+		servicesList = await Http.GetFromJsonAsync<List<Service>>("api/Service");
+		guestsList = await Http.GetFromJsonAsync<List<Guest>>("api/Guest");
+		roomsList = await Http.GetFromJsonAsync<List<Room>>("api/Room");
+	}
+
+	private async Task SaveServiceToReservation()
+	{
+		var dbReservationService = dbContext.ReservationServices.FirstOrDefault(r => r.Id == int.Parse(reservationServiceId));
+		dbReservationService.ReservationId = actualReservationId;
+		dbReservationService.ServiceId = actualServiceId;
+		dbReservationService.Quantity = reservationService.Quantity;
+		await dbContext.SaveChangesAsync();
+		Navigation.NavigateTo("/servicelistinreservation");
+	}
+
+	public void Cancel()
+	{
+		reservationService.ReservationId = actualReservationId;
+		reservationService.ServiceId = actualServiceId;
+		reservationService.Quantity = actualQuantity;
+		Navigation.NavigateTo("/servicelistinreservation");
+	}
+}

@@ -1,0 +1,81 @@
+﻿@page "/updateservice/{serviceId}"
+@using HotelApp.Database
+@using HotelApp.Database.Entities
+@rendermode InteractiveServer
+
+
+<PageTitle>Edit service</PageTitle>
+
+<div class="Sitebox animatedSlideFromUp">
+	<EditForm method="post" FormName="EditServiceForm" OnValidSubmit="SaveService" Model="service" autocomplete="off">
+		<div class="form-container">
+			<DataAnnotationsValidator />
+			<h3 style="text-align: center;">Edit a service</h3>
+			<br />
+			<h4 style="text-align: center;">Service name</h4>
+			<InputText id="Name" class="form-control" @bind-Value="service.Name" />
+			<div style="background: white; display: inline-flex; font-size: 24px;">
+				<ValidationMessage For="(() => service.Name)"></ValidationMessage>
+			</div>
+			<br />
+			<h4 style="text-align: center;">Price</h4>
+			<InputNumber id="Price" class="form-control" @bind-Value="service.Price" />
+			<div style="background: white; display: inline-flex; font-size: 24px;">
+				<ValidationMessage For="(() => service.Price)"></ValidationMessage>
+			</div>
+			<div class="button-box">
+				<button type="submit" class="button-form">Save service</button>
+			</div>
+			<div class="button-box">
+				<button class="button-form" @onclick="Cancel">Cancel</button>
+			</div>
+		</div>
+	</EditForm>
+</div>
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject AppDbContext dbContext
+@code
+{
+	[Parameter]
+	public string serviceId { get; set; }
+	[SupplyParameterFromForm]
+	public Service service { get; set; }
+
+	private string? message;
+	string actualName;
+	double actualPrice;
+
+	protected override void OnInitialized()
+	{
+		base.OnInitialized();
+		var dbService = dbContext.Services.FirstOrDefault(g => g.Id == int.Parse(serviceId));
+		if (dbService != null)
+		{
+			service = new Service
+				{
+					Name = dbService.Name,
+					Price = dbService.Price
+				};
+			actualName = dbService.Name;
+			actualPrice = dbService.Price;
+		}
+	}
+
+	private async Task SaveService()
+	{
+		var dbService = dbContext.Services.FirstOrDefault(g => g.Id == int.Parse(serviceId));
+		dbService.Name = service.Name;
+		dbService.Price = service.Price;
+		await dbContext.SaveChangesAsync();
+		Navigation.NavigateTo("/servicelist");
+	}
+
+	public void Cancel()
+	{
+		service.Name = actualName;
+		service.Price = actualPrice;
+		Navigation.NavigateTo("/servicelist");
+	}
+}

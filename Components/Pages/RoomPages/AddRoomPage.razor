@@ -1,0 +1,92 @@
+@page "/addroom"
+@using HotelApp.Database.Entities
+@rendermode InteractiveServer
+
+<PageTitle>Add room</PageTitle>
+
+<div class="SiteBox animatedSlideFromUp">
+	<EditForm method="post" FormName="AddRoomForm" OnValidSubmit="AddRoom" Model="room" autocomplete="off">
+		<div class="form-container">
+			<DataAnnotationsValidator />
+			<h3 style="text-align: center;">Add a new room</h3>
+			<br />
+			<h4 style="text-align: center;">Room number</h4>
+			<InputText id="RoomNumber" class="form-control" @bind-Value="room.RoomNumber" />
+			<div style="background: white; display: inline-flex; font-size: 24px;">
+				<ValidationMessage For="(() => room.RoomNumber)"></ValidationMessage>
+			</div>
+			<br />
+			<h4 style="text-align: center;">Type</h4>
+			<InputSelect id="RoomType" class="form-control" @bind-Value="room.Type">
+				<option value="">Choose room type</option>
+				<option value="Standard">Standard</option>
+				<option value="Premium">Premium</option>
+				<option value="Deluxe">Deluxe</option>
+			</InputSelect>
+			<div style="background: white; display: inline-flex; font-size: 24px;">
+				<ValidationMessage For="(() => room.Type)"></ValidationMessage>
+			</div>
+			<div class="button-box">
+				<button type="submit" class="button-form" id="showButton">Add room</button>
+			</div>
+		</div>
+	</EditForm>
+	<br />
+	<div>
+		@if (message == null)
+		{
+			<h3>Status: There will be status of adding process</h3>
+		}
+		else
+		{
+			<h3>Status: @message</h3>
+		}
+	</div>
+</div>
+
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@code
+{
+	[SupplyParameterFromForm]
+	public Room room { get; set; } = new Room
+		{
+			RoomNumber = string.Empty,
+			Type = string.Empty
+		};
+	private string? message;
+
+	private async Task AddRoom()
+	{
+		if (room.Type == "Standard")
+		{
+			room.PricePerNight = 150;
+		}
+		else if (room.Type == "Premium")
+		{
+			room.PricePerNight = 250;
+		}
+		else if (room.Type == "Deluxe")
+		{
+			room.PricePerNight = 500;
+		}
+
+		room.IsAvailable = true;
+		room.Reservations = [];
+		var response = await Http.PostAsJsonAsync("api/Room", room);
+		if (response.IsSuccessStatusCode)
+		{
+			message = $"Succeed added room! Room number: {room.RoomNumber} | Type: {room.Type}";
+			room = new Room
+				{
+					RoomNumber = string.Empty,
+					Type = string.Empty,
+				};
+		}
+		else
+		{
+			message = "Failed to add room! The room with that number is already there!";
+		}
+	}
+}

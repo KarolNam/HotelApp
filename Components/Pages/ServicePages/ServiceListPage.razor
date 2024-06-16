@@ -1,0 +1,88 @@
+@page "/servicelist"
+@using HotelApp.Database
+@using HotelApp.Database.Entities
+@using Microsoft.EntityFrameworkCore;
+@using System.ComponentModel.DataAnnotations.Schema;
+@rendermode InteractiveServer
+
+<PageTitle>Service list</PageTitle>
+<div class="bounce SiteBox">
+	@if (servicesList.Any())
+	{
+		<h3>Select services by name:</h3>
+		<EditForm FormName="Filer" Model="name" autocomplete="off">
+			<div class="form-container">
+				<InputText id="ServiceName" class="form-control" @bind-Value="name"></InputText>
+			</div>
+		</EditForm>
+	}
+
+	<div>
+		@if (servicesList is null)
+		{
+			<h1 style="text-align: center;">Loading services. Please wait...</h1>
+		}
+		else if (servicesList.Any())
+		{
+			<h3 style="text-align: center">Service list:</h3>
+			<table class="table">
+				<thead>
+					<tr>
+						<th>Id</th>
+						<th>Name of service</th>
+						<th>Price</th>
+						<th>Edit</th>
+						<th>Delete</th>
+					</tr>
+				</thead>
+				<tbody>
+					@if (name == string.Empty)
+					{
+						foreach (var service in servicesList)
+						{
+							<tr>
+								<ServiceDetails service="service" DeleteService="Delete"></ServiceDetails>
+							</tr>
+						}
+					}
+					else
+					{
+						foreach (var service in servicesList.Where(s => s.Name.ToLower().Contains(name.ToLower())))
+						{
+							<tr>
+								<ServiceDetails service="service" DeleteService="Delete"></ServiceDetails>
+							</tr>
+						}
+					}
+				</tbody>
+			</table>
+		}
+		else
+		{
+			<h1 style="text-align: center;">No services found</h1>
+		}
+	</div>
+</div>
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject AppDbContext dbContext
+@code
+{
+	private List<Service> servicesList = new();
+	[SupplyParameterFromForm]
+	private string? name { get; set; } = string.Empty;
+
+	protected override async Task OnInitializedAsync()
+	{
+		servicesList = await Http.GetFromJsonAsync<List<Service>>("api/Service");
+	}
+
+	public void Delete(int serviceId)
+	{
+		var dbService = dbContext.Services.FirstOrDefault(s => s.Id == serviceId);
+		dbContext.Services.Remove(dbService);
+		dbContext.SaveChangesAsync();
+		Navigation.NavigateTo("/servicelist", true);
+	}
+}

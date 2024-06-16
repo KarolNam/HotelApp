@@ -1,0 +1,124 @@
+@page "/invoicelist"
+@using HotelApp.Database
+@using HotelApp.Database.Entities
+@using Microsoft.EntityFrameworkCore;
+@using System.ComponentModel.DataAnnotations.Schema;
+@rendermode InteractiveServer
+
+<PageTitle>Invoices list</PageTitle>
+<div class="bounce SiteBox">
+	@if (guestsList.Any())
+	{
+		<h3>Select invoice by guest last name:</h3>
+		<EditForm FormName="Filer" Model="lastname" autocomplete="off">
+			<div class="form-container">
+				<InputText id="GuestLastName" class="form-control" @bind-Value="lastname"></InputText>
+			</div>
+		</EditForm>
+	}
+	@if (invoicesList.Any())
+	{
+		<h3 style="text-align: center">Invoices list:</h3>
+		<table class="table">
+			<thead>
+				<tr>
+					<th>Id</th>
+					<th>Reservation id</th>
+					<th>Guest lastname</th>
+					<th>Guest firstname</th>
+					<th>Total cost</th>
+					<th>Status</th>
+					<th>Edit</th>
+					<th>Delete</th>
+				</tr>
+			</thead>
+			<tbody>
+				@if (lastname == string.Empty)
+				{
+					foreach (var invoice in invoicesList)
+					{
+						foreach (var reservation in reservationsList.Where(r => r.Id == invoice.ReservationId))
+						{
+							foreach (var guest in guestsList.Where(g => g.Id == reservation.GuestId))
+							{
+								<tr>
+									<InvoiceDetails invoice="invoice" guest="guest" DeleteInvoice="Delete"></InvoiceDetails>
+								</tr>
+							}
+						}
+					}
+				}
+				else
+				{
+					@foreach (var invoice in invoicesList)
+					{
+						foreach (var reservation in reservationsList.Where(r => r.Id == invoice.ReservationId))
+						{
+							foreach (var guest in guestsList.Where(g => g.Id == reservation.GuestId && g.LastName.ToLower().Contains(lastname.ToLower())))
+							{
+								<tr>
+									<InvoiceDetails invoice="invoice" guest="guest" DeleteInvoice="Delete"></InvoiceDetails>
+								</tr>
+							}
+						}
+					}
+				}
+			</tbody>
+		</table>
+	}
+	else
+	{
+		<h1 style="text-align: center;">Loading invoices. Please wait...</h1>
+	}
+</div>
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject AppDbContext dbContext
+@code
+{
+	[SupplyParameterFromForm]
+	private string? lastname { get; set; } = string.Empty;
+	private List<Invoice> invoicesList = new();
+	private List<Reservation> reservationsList = new();
+	private List<Guest> guestsList = new();
+	private List<ReservationServices> reservationServicesList = new();
+	private List<Service> servicesList = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		invoicesList = await Http.GetFromJsonAsync<List<Invoice>>("api/Invoice");
+		reservationsList = await Http.GetFromJsonAsync<List<Reservation>>("api/Reservation");
+		guestsList = await Http.GetFromJsonAsync<List<Guest>>("api/Guest");
+		reservationServicesList = await Http.GetFromJsonAsync<List<ReservationServices>>("api/ReservationServices");
+		servicesList = await Http.GetFromJsonAsync<List<Service>>("api/Service");
+
+		foreach (var invoice in invoicesList)
+		{
+			var reservation = dbContext.Reservations.FirstOrDefault(r => r.Id == invoice.ReservationId);
+			invoice.TotalCost = reservation.TotalPrice;
+			foreach (var reservationService in reservationServicesList.Where(rs => rs.ReservationId == reservation.Id))
+			{
+				foreach (var service in servicesList.Where(s => s.Id == reservationService.ServiceId))
+				{
+					invoice.TotalCost = invoice.TotalCost + service.Price * reservationService.Quantity;
+					var response = await Http.PostAsJsonAsync("api/Invoice", invoice);
+					Console.WriteLine(response);
+					// Mo¿na spróbowaæ w serwisie dodaæ jak¹œ metodê na Edit i wtedy by³by ten dbcontext.invoices.update i w kontrolerze httpgeta ustawic na tego edita jak cos tam, albo probowac wywolywac stad tego edita z serwisu.
+					// Console.WriteLine(invoice.Id);
+					// dbContext.Invoices.Update(invoice);
+					// await dbContext.SaveChangesAsync();
+
+				}
+			}
+		}
+	}
+
+	private void Delete(int invoiceId)
+	{
+		var dbInvoice = dbContext.Invoices.FirstOrDefault(i => i.Id == invoiceId);
+		dbContext.Invoices.Remove(dbInvoice);
+		dbContext.SaveChangesAsync();
+		Navigation.NavigateTo("/invoicelist");
+	}
+}

@@ -1,0 +1,89 @@
+@page "/addguest"
+@using HotelApp.Database.Entities
+@using System.Text.Json.Serialization
+@rendermode InteractiveServer
+
+<PageTitle>Add guest</PageTitle>
+
+<div class="SiteBox animatedSlideFromUp">
+	<EditForm method="post" FormName="AddGuestForm" OnValidSubmit="AddGuest" Model="guest" autocomplete="off">
+		<div class="form-container">
+			<DataAnnotationsValidator />
+			<h3 style="text-align: center">Add a new guest</h3>
+			<br />
+			<h4 style="text-align: center;">Last name</h4>
+			<InputText id="GuestLastName" class="form-control" @bind-Value="guest.LastName" />
+			<div style="background: white; display: inline-flex; font-size: 24px;">
+				<ValidationMessage For="(() => guest.LastName)"></ValidationMessage>
+			</div>
+			<br />
+			<h4 style="text-align: center;">First name</h4>
+			<InputText id="GuestFirstName" class="form-control" @bind-Value="guest.FirstName" />
+			<div style="background: white; display: inline-flex; font-size: 24px;">
+				<ValidationMessage For="(() => guest.FirstName)"></ValidationMessage>
+			</div>
+			<br />
+			<h4 style="text-align: center;">Email</h4>
+			<InputText id="GuestEmail" class="form-control" @bind-Value="guest.Email" />
+			<div style="background: white; display: inline-flex; font-size: 24px;">
+				<ValidationMessage For="(() => guest.Email)"></ValidationMessage>
+			</div>
+			<br />
+			<h4 style="text-align: center;">Phone</h4>
+			<InputText id="GuestPhone" class="form-control" @bind-Value="guest.Phone" />
+			<div style="background: white; display: inline-flex; font-size: 24px;">
+				<ValidationMessage For="(() => guest.Phone)"></ValidationMessage>
+			</div>
+			<div class="button-box">
+				<button type="submit" class="button-form">Add guest</button>
+			</div>
+		</div>
+	</EditForm>
+	<br />
+	<div>
+		@if (message == null)
+		{
+			<h3>Status: There will be status of adding process</h3>
+		}
+		else
+		{
+			<h3>Status: @message</h3>
+		}
+	</div>
+</div>
+
+@inject NavigationManager Navigation
+@inject HttpClient Http
+@code
+{
+	[SupplyParameterFromForm]
+	public Guest guest { get; set; } = new Guest
+		{
+			FirstName = string.Empty,
+			LastName = string.Empty,
+			Email = string.Empty,
+			Phone = string.Empty
+		};
+	private string? message;
+
+	private async Task AddGuest()
+	{
+		guest.Reservations = [];
+		var response = await Http.PostAsJsonAsync("api/Guest", guest);
+		if (response.IsSuccessStatusCode)
+		{
+			message = $"Succeed added guest! Last name: {guest.LastName} | First name: {guest.FirstName} | Email: {guest.Email} | Phone: {guest.Phone}";
+			guest = new Guest
+				{
+					FirstName = string.Empty,
+					LastName = string.Empty,
+					Email = string.Empty,
+					Phone = string.Empty
+				};
+		}
+		else
+		{
+			message = "Failed to add guest! The phone number or email is already assign to another guest!";
+		}
+	}
+}

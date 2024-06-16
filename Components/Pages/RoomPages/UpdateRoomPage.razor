@@ -1,0 +1,95 @@
+﻿@page "/updateroom/{roomId}"
+@using HotelApp.Database
+@using HotelApp.Database.Entities
+@rendermode InteractiveServer
+
+<PageTitle>Update room</PageTitle>
+
+<div class="SiteBox animatedSlideFromUp">
+	<EditForm method="post" FormName="EditRoomForm" OnValidSubmit="SaveRoom" Model="room" autocomplete="off">
+		<div class="form-container">
+			<DataAnnotationsValidator />
+			<h3 style="text-align: center;">Edit a room</h3>
+			<br />
+			<h4 style="text-align: center;">Room number</h4>
+			<InputText id="RoomNumber" class="form-control" @bind-Value="room.RoomNumber" />
+			<div style="background: white; display: inline-flex; font-size: 24px;">
+				<ValidationMessage For="(() => room.RoomNumber)"></ValidationMessage>
+			</div>
+			<br />
+			<h4 style="text-align: center;">Type</h4>
+			<InputSelect id="RoomType" class="form-control" @bind-Value="room.Type">
+				<option value="Standard">Standard</option>
+				<option value="Premium">Premium</option>
+				<option value="Deluxe">Deluxe</option>
+			</InputSelect>
+			<div style="background: white; display: inline-flex; font-size: 24px;">
+				<ValidationMessage For="(() => room.Type)"></ValidationMessage>
+			</div>
+			<div class="button-box">
+				<button type="submit" class="button-form">Save room</button>
+			</div>
+			<div class="button-box">
+				<button class="button-form" @onclick="Cancel">Cancel</button>
+			</div>
+		</div>
+	</EditForm>
+</div>
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject AppDbContext dbContext
+@code
+{
+	[Parameter]
+	public string roomId { get; set; }
+	[SupplyParameterFromForm]
+	public Room room { get; set; }
+
+	private string? message;
+	string actualRoomNumber, actualType;
+
+	protected override void OnInitialized()
+	{
+		base.OnInitialized();
+		var dbRoom = dbContext.Rooms.FirstOrDefault(r => r.Id == int.Parse(roomId));
+		if (dbRoom != null)
+		{
+			room = new Room
+				{
+					RoomNumber = dbRoom.RoomNumber,
+					Type = dbRoom.Type
+				};
+			actualRoomNumber = dbRoom.RoomNumber;
+			actualType = dbRoom.Type;
+		}
+	}
+
+	private async Task SaveRoom()
+	{
+		var dbRoom = dbContext.Rooms.FirstOrDefault(r => r.Id == int.Parse(roomId));
+		dbRoom.RoomNumber = room.RoomNumber;
+		dbRoom.Type = room.Type;
+		if (dbRoom.Type == "Standard")
+		{
+			dbRoom.PricePerNight = 150;
+		}
+		else if (dbRoom.Type == "Premium")
+		{
+			dbRoom.PricePerNight = 250;
+		}
+		else if (dbRoom.Type == "Deluxe")
+		{
+			dbRoom.PricePerNight = 500;
+		}
+		await dbContext.SaveChangesAsync();
+		Navigation.NavigateTo("/roomlist");
+	}
+
+	private void Cancel()
+	{
+		room.RoomNumber = actualRoomNumber;
+		room.Type = actualType;
+		Navigation.NavigateTo("/roomlist");
+	}
+}

@@ -1,0 +1,27 @@
+@using HotelApp.Database.Entities
+
+<td>@guest.Id</td>
+<td>@guest.LastName</td>
+<td>@guest.FirstName</td>
+<td>@guest.Email</td>
+<td>@guest.Phone</td>
+<td><button class="EditButton" @onclick="Edit">Edit</button></td>
+<td><button class="DeleteButton" @onclick="Delete">Delete</button></td>
+
+@inject NavigationManager Navigation
+@code {
+	[Parameter]
+	public Guest guest { get; set; }
+	[Parameter]
+	public EventCallback<int> DeleteGuest { get; set; }
+
+	private void Delete()
+	{
+		DeleteGuest.InvokeAsync(guest.Id);
+	}
+
+	private void Edit()
+	{
+		Navigation.NavigateTo($"/updateguest/{guest.Id}");
+	}
+}

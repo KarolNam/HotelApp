@@ -1,0 +1,62 @@
+﻿@using HotelApp.Database.Entities
+@if (roomStatus == 1 && room.IsAvailable == true)
+{
+	<td>@room.Id</td>
+	<td>@room.RoomNumber</td>
+	<td>@room.Type</td>
+	<td>@room.PricePerNight PLN</td>
+	<td>Vacancy</td>
+	<td><button class="EditButton" @onclick="Edit">Edit</button></td>
+	<td><button class="DeleteButton" @onclick="Delete">Delete</button></td>
+}
+else if (roomStatus == 2 && room.IsAvailable == false)
+{
+	<td>@room.Id</td>
+	<td>@room.RoomNumber</td>
+	<td>@room.Type</td>
+	<td>@room.PricePerNight PLN</td>
+	<td>Occupied</td>
+	<td><button class="EditButton" @onclick="Edit">Edit</button></td>
+	<td><button class="DeleteButton" @onclick="Delete">Delete</button></td>
+}
+else if (roomStatus == 0)
+{
+	<td>@room.Id</td>
+	<td>@room.RoomNumber</td>
+	<td>@room.Type</td>
+	<td>@room.PricePerNight PLN</td>
+	@if (room.IsAvailable)
+	{
+		<td>Vacancy</td>
+	}
+	else
+	{
+		<td>Occupied</td>
+	}
+	<td><button class="EditButton" @onclick="Edit">Edit</button></td>
+	<td><button class="DeleteButton" @onclick="Delete">Delete</button></td>
+}
+
+
+@inject NavigationManager Navigation
+@code {
+	[Parameter]
+	public Room room { get; set; }
+	[Parameter]
+	public EventCallback<int> DeleteRoom { get; set; }
+	[Parameter]
+	public int roomStatus { get; set; }
+
+	private void Delete()
+	{
+		DeleteRoom.InvokeAsync(room.Id);
+	}
+
+	private void Edit()
+	{
+		Navigation.NavigateTo($"/updateroom/{room.Id}");
+	}
+}
+
+
+

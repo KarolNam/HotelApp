@@ -1,0 +1,120 @@
+@page "/roomlist"
+@using HotelApp.Database
+@using HotelApp.Database.Entities
+@using Microsoft.EntityFrameworkCore;
+@using System.ComponentModel.DataAnnotations.Schema;
+@rendermode InteractiveServer
+
+<PageTitle>Room list</PageTitle>
+<div class="bounce SiteBox">
+	@if (roomsList.Any())
+	{
+		<EditForm FormName="FilerStatus" Model="roomStatus" autocomplete="off">
+			<div class="form-container">
+				<InputSelect class="form-control" @bind-Value="roomStatus">
+					<option value="0">Reset filter</option>
+					<option value="1">Vacancy</option>
+					<option value="2">Occupied</option>
+				</InputSelect>
+				<br />
+				<InputSelect class="form-control" @bind-Value="roomType">
+					<option value="0">Reset filter</option>
+					<option value="1">Standard</option>
+					<option value="2">Premium</option>
+					<option value="3">Deluxe</option>
+				</InputSelect>
+			</div>
+		</EditForm>
+	}
+	<div>
+		@if (roomsList is null)
+		{
+			<h1 style="text-align: center;">Loading rooms. Please wait...</h1>
+		}
+		else if (roomsList.Any())
+		{
+			<h3 style="text-align: center">Room list:</h3>
+			<table class="table">
+				<thead>
+					<tr>
+						<th>Id</th>
+						<th>Room number</th>
+						<th>Type</th>
+						<th>Price per night</th>
+						<th>Status</th>
+						<th>Edit</th>
+						<th>Delete</th>
+					</tr>
+				</thead>
+				<tbody>
+					@if (roomType == 0)
+					{
+						foreach (var room in roomsList)
+						{
+							<tr>
+								<RoomDetails room="room" DeleteRoom="Delete" roomStatus="roomStatus"></RoomDetails>
+							</tr>
+						}
+					}
+					else if (roomType == 1)
+					{
+						foreach (var room in roomsList.Where(r => r.Type == "Standard"))
+						{
+							<tr>
+								<RoomDetails room="room" DeleteRoom="Delete" roomStatus="roomStatus"></RoomDetails>
+							</tr>
+						}
+					}
+					else if (roomType == 2)
+					{
+						foreach (var room in roomsList.Where(r => r.Type == "Premium"))
+						{
+							<tr>
+								<RoomDetails room="room" DeleteRoom="Delete" roomStatus="roomStatus"></RoomDetails>
+							</tr>
+						}
+					}
+					else if (roomType == 3)
+					{
+						foreach (var room in roomsList.Where(r => r.Type == "Deluxe"))
+						{
+							<tr>
+								<RoomDetails room="room" DeleteRoom="Delete" roomStatus="roomStatus"></RoomDetails>
+							</tr>
+						}
+					}
+				</tbody>
+			</table>
+		}
+		else
+		{
+			<h1 style="text-align: center;">No rooms found</h1>
+		}
+	</div>
+</div>
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject AppDbContext dbContext
+@code
+{
+	private List<Room> roomsList = new();
+
+	[SupplyParameterFromForm]
+	private int roomStatus { get; set; }
+	[SupplyParameterFromForm]
+	private int roomType { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		roomsList = await Http.GetFromJsonAsync<List<Room>>("api/Room");
+	}
+
+	private void Delete(int roomId)
+	{
+		var dbRoom = dbContext.Rooms.FirstOrDefault(r => r.Id == roomId);
+		dbContext.Rooms.Remove(dbRoom);
+		dbContext.SaveChangesAsync();
+		Navigation.NavigateTo("/roomlist", true);
+	}
+}

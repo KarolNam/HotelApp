@@ -1,0 +1,133 @@
+@page "/reservationlist"
+@using HotelApp.Database
+@using HotelApp.Database.Entities
+@using Microsoft.EntityFrameworkCore;
+@using System.ComponentModel.DataAnnotations.Schema;
+@rendermode InteractiveServer
+
+<PageTitle>Reservation list</PageTitle>
+<div class="bounce SiteBox">
+	@if (guestsList.Any())
+	{
+		<h3>Select reservation by guest last name:</h3>
+		<EditForm FormName="Filer" Model="lastname" autocomplete="off">
+			<div class="form-container">
+				<InputText id="GuestLastName" class="form-control" @bind-Value="lastname"></InputText>
+			</div>
+		</EditForm>
+	}
+
+	<div>
+		@if (reservationsList is null)
+		{
+			<h1 style="text-align: center;">Loading reservations. Please wait...</h1>
+		}
+		else if (reservationsList.Any())
+		{
+			<h3 style="text-align: center">Reservation list:</h3>
+			<table class="table">
+				<thead>
+					<tr>
+						<th>Id</th>
+						<th>Guest id</th>
+						<th>Lastname</th>
+						<th>Firstname</th>
+						<th>Room number</th>
+						<th>Type</th>
+						<th>Price per night</th>
+						<th>Check in date</th>
+						<th>Check out date</th>
+						<th>Price for room</th>
+						<th>Edit</th>
+						<th>Delete</th>
+					</tr>
+				</thead>
+				<tbody>
+					@if (lastname == string.Empty)
+					{
+						foreach (var reservation in reservationsList)
+						{
+							foreach (var guest in guestsList.Where(g => g.Id == reservation.GuestId))
+							{
+								foreach (var room in roomsList.Where(r => r.Id == reservation.RoomId))
+								{
+									<tr>
+										<ReservationDetails reservation="reservation" guest="guest" room="room" DeleteReservation="Delete"></ReservationDetails>
+									</tr>
+								}
+							}
+						}
+					}
+					else
+					{
+						foreach (var reservation in reservationsList)
+						{
+							foreach (var guest in guestsList.Where(g => g.Id == reservation.GuestId && g.LastName.ToLower().Contains(lastname.ToLower())))
+							{
+								foreach (var room in roomsList.Where(r => r.Id == reservation.RoomId))
+								{
+									<tr>
+										<ReservationDetails reservation="reservation" guest="guest" room="room" DeleteReservation="Delete"></ReservationDetails>
+									</tr>
+								}
+							}
+						}
+					}
+				</tbody>
+			</table>
+		}
+		else
+		{
+			<h1 style="text-align: center;">No reservations found</h1>
+		}
+	</div>
+</div>
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject AppDbContext dbContext
+@code
+{
+	[SupplyParameterFromForm]
+	private string? lastname { get; set; } = string.Empty;
+	private List<Reservation> reservationsList = new();
+	public List<Guest> guestsList = new();
+	public List<Room> roomsList = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		reservationsList = await Http.GetFromJsonAsync<List<Reservation>>("api/Reservation");
+		guestsList = await Http.GetFromJsonAsync<List<Guest>>("api/Guest");
+		roomsList = await Http.GetFromJsonAsync<List<Room>>("api/Room");
+
+		if (roomsList != null && reservationsList != null)
+		{
+			foreach (var room in roomsList)
+			{
+				var pastReservations = reservationsList.Where(r => r.RoomId == room.Id && r.CheckOutDate < DateTime.Now).ToList();
+				var futureReservations = reservationsList.Where(r => r.RoomId == room.Id && r.CheckOutDate >= DateTime.Now).ToList();
+
+				if ((pastReservations.Any() && !futureReservations.Any() && room.IsAvailable == false) || (!pastReservations.Any() && !futureReservations.Any() && room.IsAvailable == false))
+				{
+					room.IsAvailable = true;
+					dbContext.Rooms.Update(room);
+					await dbContext.SaveChangesAsync();
+				}
+				else if (futureReservations.Any() && room.IsAvailable == true)
+				{
+					room.IsAvailable = false;
+					dbContext.Rooms.Update(room);
+					await dbContext.SaveChangesAsync();
+				}
+			}
+		}
+	}
+
+	private void Delete(int reservationId)
+	{
+		var dbReservation = dbContext.Reservations.FirstOrDefault(r => r.Id == reservationId);
+		dbContext.Reservations.Remove(dbReservation);
+		dbContext.SaveChangesAsync();
+		Navigation.NavigateTo("/reservationlist", true);
+	}
+}

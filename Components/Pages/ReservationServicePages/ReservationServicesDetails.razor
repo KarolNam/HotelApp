@@ -1,0 +1,30 @@
+﻿@using HotelApp.Database.Entities
+
+<td>@reservationService.Id</td>
+<td>@reservationService.ReservationId</td>
+<td>@reservationService.ServiceId</td>
+<td>@service.Name</td>
+<td>@service.Price PLN</td>
+<td>@reservationService.Quantity</td>
+<td><button class="EditButton" @onclick="Edit">Edit</button></td>
+<td><button class="DeleteButton" @onclick="Delete">Delete</button></td>
+
+@inject NavigationManager Navigation
+@code {
+	[Parameter]
+	public ReservationServices reservationService { get; set; }
+	[Parameter]
+	public Service service { get; set; }
+	[Parameter]
+	public EventCallback<int> DeleteReservationService { get; set; }
+
+	private void Delete()
+	{
+		DeleteReservationService.InvokeAsync(reservationService.Id);
+	}
+
+	private void Edit()
+	{
+		Navigation.NavigateTo($"/updatereservationservice/{reservationService.Id}");
+	}
+}

@@ -1,0 +1,100 @@
+﻿@page "/updateguest/{guestId}"
+@using HotelApp.Database
+@using HotelApp.Database.Entities
+@using System.Text.Json.Serialization
+@rendermode InteractiveServer
+
+<PageTitle>Update guest</PageTitle>
+
+<div class="SiteBox animatedSlideFromUp">
+	<EditForm method="post" FormName="EditGuestForm" OnSubmit="SaveGuest" Model="guest" autocomplete="off">
+		<div class="form-container">
+			<DataAnnotationsValidator />
+			<h3 style="text-align: center">Edit a guest</h3>
+			<br />
+			<h4 style="text-align: center;">Last name</h4>
+			<InputText id="GuestLastName" class="form-control" @bind-Value="guest.LastName" />
+			<div style="background: white; display: inline-flex; font-size: 24px;">
+				<ValidationMessage For="(() => guest.LastName)"></ValidationMessage>
+			</div>
+			<br />
+			<h4 style="text-align: center;">First name</h4>
+			<InputText id="GuestFirstName" class="form-control" @bind-Value="guest.FirstName" />
+			<div style="background: white; display: inline-flex; font-size: 24px;">
+				<ValidationMessage For="(() => guest.FirstName)"></ValidationMessage>
+			</div>
+			<br />
+			<h4 style="text-align: center;">Email</h4>
+			<InputText id="GuestEmail" class="form-control" @bind-Value="guest.Email" />
+			<div style="background: white; display: inline-flex; font-size: 24px;">
+				<ValidationMessage For="(() => guest.Email)"></ValidationMessage>
+			</div>
+			<br />
+			<h4 style="text-align: center;">Phone</h4>
+			<InputText id="GuestPhone" class="form-control" @bind-Value="guest.Phone" />
+			<div style="background: white; display: inline-flex; font-size: 24px;">
+				<ValidationMessage For="(() => guest.Phone)"></ValidationMessage>
+			</div>
+			<div class="button-box">
+				<button type="submit" class="button-form">Save guest</button>
+			</div>
+			<div class="button-box">
+				<button class="button-form" @onclick="Cancel">Cancel</button>
+			</div>
+		</div>
+	</EditForm>
+</div>
+
+@inject NavigationManager Navigation
+@inject HttpClient Http
+@inject AppDbContext dbContext
+@code
+{
+	[Parameter]
+	public string guestId { get; set; }
+	[SupplyParameterFromForm]
+	public Guest guest { get; set; }
+
+	private string? message;
+	string actualFirstName, actualLastName, actualEmail, actualPhone;
+
+	protected override void OnInitialized()
+	{
+		base.OnInitialized();
+		var dbGuest = dbContext.Guests.FirstOrDefault(g => g.Id == int.Parse(guestId));
+		if (dbGuest != null)
+		{
+			guest = new Guest
+				{
+					FirstName = dbGuest.FirstName,
+					LastName = dbGuest.LastName,
+					Email = dbGuest.Email,
+					Phone = dbGuest.Phone
+				};
+			actualFirstName = dbGuest.FirstName;
+			actualLastName = dbGuest.LastName;
+			actualEmail = dbGuest.Email;
+			actualPhone = dbGuest.Phone;
+		}
+	}
+
+	private async Task SaveGuest()
+	{
+		var dbGuest = dbContext.Guests.FirstOrDefault(g => g.Id == int.Parse(guestId));
+		dbGuest.LastName = guest.LastName;
+		dbGuest.FirstName = guest.FirstName;
+		dbGuest.Email = guest.Email;
+		dbGuest.Phone = guest.Phone;
+		await dbContext.SaveChangesAsync();
+		Navigation.NavigateTo("/guestlist");
+	}
+
+	private void Cancel()
+	{
+		guest.FirstName = actualFirstName;
+		guest.LastName = actualLastName;
+		guest.Email = actualEmail;
+		guest.Phone = actualPhone;
+		Navigation.NavigateTo("/guestlist");
+	}
+}

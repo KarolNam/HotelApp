@@ -1,0 +1,32 @@
+table[b-iu0ugc2bkd] {
+    transform: translate(32%,0);
+    width: 60%;
+    border-collapse: collapse;
+    border-spacing: 0;
+    box-shadow: 0 2px 15px rgba(64,64,64,.7);
+    border-radius: 12px 12px 0 0;
+    overflow: hidden;
+}
+
+td[b-iu0ugc2bkd], th[b-iu0ugc2bkd] {
+    padding: 15px 20px;
+    text-align: center;
+}
+
+th[b-iu0ugc2bkd] {
+    background-color: #ba68c8;
+    color: peachpuff;
+    font-family: 'Poppins';
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+tr[b-iu0ugc2bkd] {
+    width: 100%;
+    background-color: #fafafa;
+    font-family: 'Poppins';
+}
+
+tr:nth-child(even)[b-iu0ugc2bkd] {
+    background-color: #eeeeee;
+}

@@ -1,0 +1,73 @@
+@page "/addService"
+@using HotelApp.Database.Entities
+@rendermode InteractiveServer
+
+
+<PageTitle>Add service</PageTitle>
+
+<div class="Sitebox animatedSlideFromUp">
+	<EditForm method="post" FormName="AddServiceForm" OnValidSubmit="AddService" Model="service" autocomplete="off">
+		<div class="form-container">
+			<DataAnnotationsValidator />
+			<h3 style="text-align: center;">Add a new service</h3>
+			<br />
+			<h4 style="text-align: center;">Service name</h4>
+			<InputText id="Name" class="form-control" @bind-Value="service.Name" />
+			<div style="background: white; display: inline-flex; font-size: 24px;">
+				<ValidationMessage For="(() => service.Name)"></ValidationMessage>
+			</div>
+			<br />
+			<h4 style="text-align: center;">Price</h4>
+			<InputNumber id="Price" class="form-control" @bind-Value="service.Price" />
+			<div style="background: white; display: inline-flex; font-size: 24px;">
+				<ValidationMessage For="(() => service.Price)"></ValidationMessage>
+			</div>
+			<div class="button-box">
+				<button type="submit" class="button-form">Add service</button>
+			</div>
+		</div>
+	</EditForm>
+	<br />
+	<div>
+		@if (message == null)
+		{
+			<h3>Status: There will be status of adding process</h3>
+		}
+		else
+		{
+			<h3>Status: @message</h3>
+		}
+	</div>
+</div>
+
+@inject HttpClient Http
+@code
+{
+	[SupplyParameterFromForm]
+	public Service service { get; set; } = new Service
+		{
+			Name = string.Empty,
+			Price = 0
+		};
+	private string? message;
+
+	private async Task AddService()
+	{
+		service.Reservations = [];
+		service.ReservationServices = [];
+		var response = await Http.PostAsJsonAsync("api/Service", service);
+		if (response.IsSuccessStatusCode)
+		{
+			message = $"Succeed added service! Name: {service.Name} | Price: {service.Price} PLN";
+			service = new Service
+				{
+					Name = string.Empty,
+					Price = 0
+				};
+		}
+		else
+		{
+			message = "Failed to add service! There is already service with that name!";
+		}
+	}
+}

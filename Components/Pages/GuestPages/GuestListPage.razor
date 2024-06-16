@@ -1,0 +1,91 @@
+@page "/guestlist"
+@using HotelApp.Database
+@using HotelApp.Database.Entities
+@using Microsoft.EntityFrameworkCore;
+@using System.ComponentModel.DataAnnotations.Schema;
+@rendermode InteractiveServer
+
+<PageTitle>Guest list</PageTitle>
+<div class="bounce SiteBox">
+	@if (guestsList.Any())
+	{
+		<h3>Select guests by last name:</h3>
+		<EditForm FormName="Filer" Model="lastname" autocomplete="off">
+			<div class="form-container">
+				<InputText id="GuestLastName" class="form-control" @bind-Value="lastname"></InputText>
+			</div>
+		</EditForm>
+	}
+
+	@if (guestsList is null)
+	{
+		<h1 style="text-align: center;">Loading guests. Please wait...</h1>
+	}
+	else if (guestsList.Any())
+	{
+		<div>
+			<h3 style="text-align: center">Guest list:</h3>
+			<table class="table">
+				<thead>
+					<tr>
+						<th>Id</th>
+						<th>Last name</th>
+						<th>First name</th>
+						<th>Email</th>
+						<th>Phone</th>
+						<th>Edit</th>
+						<th>Delete</th>
+					</tr>
+				</thead>
+				<tbody>
+					@if (lastname == string.Empty)
+					{
+						foreach (var guest in guestsList)
+						{
+							<tr>
+								<GuestDetails guest="guest" DeleteGuest="Delete"></GuestDetails>
+							</tr>
+						}
+					}
+					else
+					{
+						foreach (var guest in guestsList.Where(g => g.LastName.ToLower().Contains(lastname.ToLower())))
+						{
+							<tr>
+								<GuestDetails guest="guest" DeleteGuest="Delete"></GuestDetails>
+							</tr>
+						}
+					}
+				</tbody>
+			</table>
+		</div>
+	}
+	else
+	{
+		<h1 style="text-align: center;">No guests found</h1>
+	}
+</div>
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject AppDbContext dbContext
+@code
+{
+	private List<Guest> guestsList = [];
+	[SupplyParameterFromForm]
+	private string? lastname { get; set; } = string.Empty;
+
+	protected override async Task OnInitializedAsync()
+	{
+		guestsList = await Http.GetFromJsonAsync<List<Guest>>("api/Guest");
+	}
+
+
+	private void Delete(int guestId)
+	{
+		var dbGuest = dbContext.Guests.FirstOrDefault(g => g.Id == guestId);
+		dbContext.Guests.Remove(dbGuest);
+		dbContext.SaveChangesAsync();
+		Navigation.NavigateTo("/guestlist", true);
+	}
+}

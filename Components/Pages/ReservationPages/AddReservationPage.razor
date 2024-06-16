@@ -1,0 +1,162 @@
+@page "/addreservation"
+@using HotelApp.Database.Entities
+@using Microsoft.EntityFrameworkCore;
+@rendermode InteractiveServer
+
+<PageTitle>Add reservation</PageTitle>
+
+<div class="SiteBox animatedSlideFromUp">
+	@if (!roomsList.Where(r => r.IsAvailable == true).Any())
+	{
+		<h1>There is no vacancy room at this moment! Try again later!</h1>
+	}
+	else
+	{
+		<EditForm method="post" FormName="AddReservation" OnValidSubmit="AddReservation" Model="reservation" autocomplete="off">
+			<div class="form-container">
+				<DataAnnotationsValidator />
+				<h3 style="text-align: center;">Add a new reservation</h3>
+				<br />
+				<h3>Filter guests by lastname</h3>
+				<InputText id="GuestLastName" class="form-control" @bind-Value="lastname"></InputText>
+				<br />
+				<h3 style="text-align: center">Choose guest</h3>
+				<InputSelect id="GuestId" class="form-control" @bind-Value="reservation.GuestId">
+					@if (lastname == string.Empty)
+					{
+						<option value="">Choose guest</option>
+						foreach (var guest in guestsList)
+						{
+							<option value="@guest.Id">@guest.FirstName | @guest.LastName | @guest.Phone</option>
+						}
+					}
+					else
+					{
+						<option value="">Choose guest</option>
+						foreach (var guest in guestsList.Where(g => g.LastName.ToLower().Contains(lastname.ToLower())))
+						{
+							<option value="@guest.Id">@guest.FirstName | @guest.LastName | @guest.Phone</option>
+						}
+					}
+				</InputSelect>
+				<div style="background: white; display: inline-flex; font-size: 24px;">
+					<ValidationMessage For="(() => reservation.GuestId)"></ValidationMessage>
+				</div>
+				<br />
+				<h3>Filter rooms by type</h3>
+				<InputSelect id="roomtype" class="form-control" @bind-Value="roomType">
+					<option value="">Choose room type filter</option>
+					<option value="Standard">Standard</option>
+					<option value="Premium">Premium</option>
+					<option value="Deluxe">Deluxe</option>
+				</InputSelect>
+				<br />
+				<h3 style="text-align: center">Choose room</h3>
+				<InputSelect id="RoomId" class="form-control" @bind-Value="reservation.RoomId">
+					@if (roomType == string.Empty)
+					{
+						<option value="">Choose room</option>
+						foreach (var room in roomsList.Where(r => r.IsAvailable == true))
+						{
+							<option value="@room.Id">@room.RoomNumber | @room.Type | @room.PricePerNight</option>
+						}
+					}
+					else
+					{
+						<option value="">Choose room</option>
+						foreach (var room in roomsList.Where(r => r.IsAvailable == true && r.Type.ToLower().Contains(roomType.ToLower())))
+						{
+							<option value="@room.Id">@room.RoomNumber | @room.Type | @room.PricePerNight</option>
+						}
+					}
+				</InputSelect>
+				<div style="background: white; display: inline-flex; font-size: 24px;">
+					<ValidationMessage For="(() => reservation.RoomId)"></ValidationMessage>
+				</div>
+				<br />
+				<h3 style="text-align: center">Check out date</h3>
+				<InputDate id="CheckOutDate" class="form-control" @bind-Value="reservation.CheckOutDate" />
+				<div style="background: white; display: inline-flex; font-size: 24px;">
+					<ValidationMessage For="(() => reservation.CheckOutDate)"></ValidationMessage>
+				</div>
+				<div class="button-box">
+					<button type="submit" class="button-form">Add reservation</button>
+				</div>
+			</div>
+		</EditForm>
+		<br />
+		<div>
+			@if (message == null)
+			{
+				<h3>Status: There will be status of adding process</h3>
+			}
+			else
+			{
+				<h3>Status: @message</h3>
+			}
+		</div>
+	}
+</div>
+
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject Database.AppDbContext dbContext
+@code
+{
+	[SupplyParameterFromForm]
+	public Reservation reservation { get; set; } = new Reservation
+		{
+			CheckOutDate = DateTime.Now
+		};
+	[SupplyParameterFromForm]
+	private string? lastname { get; set; } = string.Empty;
+	[SupplyParameterFromForm]
+	private string? roomType { get; set; } = string.Empty;
+	public List<Guest> guestsList = new();
+	public List<Room> roomsList = new();
+	public List<Reservation> reservationsList = new();
+	private string? message;
+
+	protected override async Task OnInitializedAsync()
+	{
+		reservationsList = await Http.GetFromJsonAsync<List<Reservation>>("api/Reservation");
+		guestsList = await Http.GetFromJsonAsync<List<Guest>>("api/Guest");
+		roomsList = await Http.GetFromJsonAsync<List<Room>>("api/Room");
+	}
+
+	private async Task AddReservation()
+	{
+		if (reservation.CheckOutDate <= DateTime.Now)
+		{
+			message = "Check out date must be minimum next day!";
+		}
+		else
+		{
+			reservation.CheckInDate = DateTime.Now;
+			reservation.CheckOutDate = reservation.CheckOutDate.Date.AddHours(12);
+			var room = dbContext.Rooms.FirstOrDefault(r => r.Id == reservation.RoomId);
+			if (reservation.CheckInDate.TimeOfDay > new TimeSpan(12, 0, 0))
+			{
+				reservation.TotalPrice = ((reservation.CheckOutDate - reservation.CheckInDate).Days + 1) * room.PricePerNight;
+			}
+			else if (reservation.CheckInDate.TimeOfDay <= new TimeSpan(12, 0, 0))
+			{
+				reservation.TotalPrice = (reservation.CheckOutDate - reservation.CheckInDate).Days * room.PricePerNight;
+			}
+			reservation.Services = [];
+			reservation.Invoice = null;
+			reservation.Guest = null;
+			reservation.Room = null;
+			reservation.ReservationServices = [];
+			var response = await Http.PostAsJsonAsync("api/Reservation", reservation);
+			if (response.IsSuccessStatusCode)
+			{
+				Navigation.NavigateTo("/reservationlist");
+			}
+			else
+			{
+				message = "Failed to add reservation!";
+			}
+		}
+	}
+}

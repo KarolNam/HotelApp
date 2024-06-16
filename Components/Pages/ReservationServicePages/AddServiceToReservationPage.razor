@@ -1,0 +1,145 @@
+@page "/addservicetoreservation"
+@using HotelApp.Database.Entities
+@using Microsoft.EntityFrameworkCore;
+@rendermode InteractiveServer
+
+<PageTitle>Add service to reservation</PageTitle>
+
+<div class="SiteBox animatedSlideFromUp">
+	<EditForm method="post" FormName="AddServiceToReservationForm" OnValidSubmit="AddServiceToReservation" Model="reservationService" autocomplete="off">
+		<div class="form-container">
+			<DataAnnotationsValidator />
+			<h3 style="text-align: center;">Add a new service to reservation</h3>
+			<br />
+			<h3>Filter guests by lastname</h3>
+			<InputText id="GuestLastName" class="form-control" @bind-Value="lastname"></InputText>
+			<br />
+			<InputSelect id="ReservationId" class="form-control" @bind-Value="reservationService.ReservationId">
+				@if (lastname == string.Empty)
+				{
+					<option value="0">Choose reservation</option>
+					foreach (var reservation in reservationsList.Where(r => (r.CheckOutDate - DateTime.Now).Days >= 0))
+					{
+						foreach (var guest in guestsList.Where(g => g.Id == reservation.GuestId))
+						{
+							foreach (var room in roomsList.Where(r => r.Id == reservation.RoomId))
+							{
+								<option value="@reservation.Id">Reservation id: @reservation.Id | Guest id: @reservation.GuestId | @guest.LastName | @guest.FirstName | @room.RoomNumber | @room.Type</option>
+							}
+						}
+					}
+				}
+				else
+				{
+					<option value="0">Choose reservation</option>
+					foreach (var reservation in reservationsList.Where(r => (r.CheckOutDate - DateTime.Now).Days >= 0))
+					{
+						foreach (var guest in guestsList.Where(g => g.Id == reservation.GuestId && g.LastName.ToLower().Contains(lastname.ToLower())))
+						{
+							foreach (var room in roomsList.Where(r => r.Id == reservation.RoomId))
+							{
+								<option value="@reservation.Id">Reservation id: @reservation.Id | Guest id: @reservation.GuestId | @guest.LastName | @guest.FirstName | @room.RoomNumber | @room.Type</option>
+							}
+						}
+					}
+				}
+			</InputSelect>
+			<div style="background: white; display: inline-flex; font-size: 24px;">
+				<ValidationMessage For="(() => reservationService.ReservationId)"></ValidationMessage>
+			</div>
+			<br />
+			<h3>Filter services by name</h3>
+			<InputText id="ServiceName" class="form-control" @bind-Value="name"></InputText>
+			<br />
+			<InputSelect id="ServiceId" class="form-control" @bind-Value="reservationService.ServiceId">
+				@if (name == string.Empty)
+				{
+					<option value="0">Choose service</option>
+					foreach (var service in servicesList)
+					{
+						<option value="@service.Id">Service id: @service.Id | Service name: @service.Name | Price: @service.Price PLN</option>
+					}
+				}
+				else
+				{
+					<option value="0">Choose service</option>
+					foreach (var service in servicesList.Where(s => s.Name.ToLower().Contains(name.ToLower())))
+					{
+						<option value="@service.Id">Service id: @service.Id | Service name: @service.Name | Price: @service.Price PLN</option>
+					}
+				}
+			</InputSelect>
+			<div style="background: white; display: inline-flex; font-size: 24px;">
+				<ValidationMessage For="(() => reservationService.ServiceId)"></ValidationMessage>
+			</div>
+			<br />
+			<h4 style="text-align: center;">Quantity</h4>
+			<InputNumber id="Quantity" class="form-control" @bind-Value="reservationService.Quantity" />
+			<div style="background: white; display: inline-flex; font-size: 24px;">
+				<ValidationMessage For="(() => reservationService.Quantity)"></ValidationMessage>
+			</div>
+			<div class="button-box">
+				<button type="submit" class="button-form">Add service to reservation</button>
+			</div>
+		</div>
+	</EditForm>
+	<br />
+	<div>
+		@if (message == null)
+		{
+			<h3>Status: There will be status of adding process</h3>
+		}
+		else
+		{
+			<h3>Status: @message</h3>
+		}
+	</div>
+</div>
+
+@inject HttpClient Http
+@inject Database.AppDbContext dbContext
+@inject NavigationManager Navigation
+@code
+{
+	[SupplyParameterFromForm]
+	public ReservationServices reservationService { get; set; } = new ReservationServices
+		{
+			Quantity = 1
+		};
+	[SupplyParameterFromForm]
+	private string? lastname { get; set; } = string.Empty;
+	[SupplyParameterFromForm]
+	private string? name { get; set; } = string.Empty;
+	public List<Reservation> reservationsList = new();
+	public List<Service> servicesList = new();
+	public List<Guest> guestsList = new();
+	public List<Room> roomsList = new();
+	private string? message;
+
+	protected override async Task OnInitializedAsync()
+	{
+		reservationsList = await Http.GetFromJsonAsync<List<Reservation>>("api/Reservation");
+		servicesList = await Http.GetFromJsonAsync<List<Service>>("api/Service");
+		guestsList = await Http.GetFromJsonAsync<List<Guest>>("api/Guest");
+		roomsList = await Http.GetFromJsonAsync<List<Room>>("api/Room");
+	}
+
+	private async Task AddServiceToReservation()
+	{
+		reservationService.Reservation = null;
+		reservationService.Service = null;
+		var response = await Http.PostAsJsonAsync("api/ReservationServices", reservationService);
+		if (response.IsSuccessStatusCode)
+		{
+			message = $"Succeed added service to reservation! Reservation id: {reservationService.ReservationId} | Service id: {reservationService.ServiceId} | Quantity: {reservationService.Quantity}";
+			reservationService = new ReservationServices
+				{
+					Quantity = 1
+				};
+		}
+		else
+		{
+			message = "Failed to add service to reservation! There is already same service in this reservation!";
+		}
+	}
+}
